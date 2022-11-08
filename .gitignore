@@ -3,3 +3,15 @@
 ################################################################################
 
 /.vs
+/x64/Debug
+*.sln
+*.vcxproj
+*.filters
+*.user
+/uml_procedure_to_oop_mcvs_prjct/x64/Debug/uml_proc.84533546.tlog
+/uml_procedure_to_oop_mcvs_prjct/x64/Debug/uml_procedure_to_oop_mcvs_prjct.exe.recipe
+/uml_procedure_to_oop_mcvs_prjct/x64/Debug/uml_procedure_to_oop_mcvs_prjct.ilk
+/uml_procedure_to_oop_mcvs_prjct/x64/Debug/uml_procedure_to_oop_mcvs_prjct.log
+/uml_procedure_to_oop_mcvs_prjct/x64/Debug/uml_procedure_to_oop_mcvs_prjct.obj
+/uml_procedure_to_oop_mcvs_prjct/x64/Debug/vc143.idb
+/uml_procedure_to_oop_mcvs_prjct/x64/Debug/vc143.pdb
