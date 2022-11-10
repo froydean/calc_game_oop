@@ -554,26 +554,26 @@ void game_sort_start() {
 	}
 }
 
-int main()
-{
-	setlocale(LC_ALL, "en");
-	game_start();
-	
-	string input;
-	cin >> input;
-
-	if (input == "/math") {
-		game_math_start();
-	}
-	if (input == "/strings") {
-		game_string_start();
-	}
-	if (input == "/sort") {
-		game_sort_start();
-	}
-	else {
-		printf_s("Sorry, game wasn't choosen, game over!\n");
-	}
-
-	return 0;
-}
+//int main()
+//{
+//	setlocale(LC_ALL, "en");
+//	game_start();
+//	
+//	string input;
+//	cin >> input;
+//
+//	if (input == "/math") {
+//		game_math_start();
+//	}
+//	if (input == "/strings") {
+//		game_string_start();
+//	}
+//	if (input == "/sort") {
+//		game_sort_start();
+//	}
+//	else {
+//		printf_s("Sorry, game wasn't choosen, game over!\n");
+//	}
+//
+//	return 0;
+//}
