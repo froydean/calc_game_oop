@@ -1,53 +1,9 @@
 #include "classes_def.h"
-#define ARRAY_SIZE 10
 
-using namespace std;
 
-int compare(const void* x1, const void* x2){
+int compare(const void* x1, const void* x2) {
 	return (*(int*)x1 - *(int*)x2);              //0 equal, <0: x1<x2; >0: x1>x2
 }
-
-class Player {
-
-private:
-	
-	unsigned int answer_;
-	unsigned game_;
-
-public:
-	
-	string get_input() { //smell
-		string input;
-		cin >> input;
-		return input;
-	}
-
-	unsigned int get_answer() {
-		return answer_;
-	}
-
-	unsigned int get_game() {
-		return game_;
-	}
-	
-	void solve_task() {
-		answer_ = atoi(get_input().c_str());
-	}
-
-	void choose_game() {
-		string input = get_input();
-		if (input == "/math") {
-			game_ = 1;
-		}
-		else if (input == "/strings") {
-			game_ = 2;
-		}
-		else if (input == "/sort") {
-			game_ = 3;
-		}
-	}
-
-};
 
 
 class Task {
@@ -55,8 +11,10 @@ class Task {
 protected:
 
 	unsigned int right_answer_;
-	virtual void generate_task(unsigned int dif) {}; // = 0?
-	virtual void calc_right_answer() {};
+	virtual void generate_task(unsigned int dif) = 0;
+	virtual void calc_right_answer() = 0;
+
+	friend class Game;
 
 public:
 
@@ -141,7 +99,7 @@ private:
 			len_ = 20;
 			break;
 		}
-		for (int i = 0; i < len_; i++) {
+		for (unsigned int i = 0; i < len_; i++) {
 			char tmp = rand() % 25 + 65;
 			string_.append(&tmp, 1);
 		}
@@ -225,124 +183,21 @@ public:
 
 };
 
-class Level {//shitty class
 
-private:
+class Game {
 
-	unsigned int score_;
-	unsigned int attemts_left_;
-	string grade_string_;
-	unsigned int grade_;
+protected:
 
-	bool is_answer_right(unsigned int player_answer, Task task) {
-		return player_answer == task.get_right_answer();
-	}
-
-	void write_state() {
-		cout << "You are " << grade_string_ << " for now.\tYour current score: " << score_ << ".\tTries left : " << attemts_left_ << endl;
-	}
-
-	Task give_task(unsigned int game) {
-		if (game == 1) {
-			MathTask task(grade_);
-			task.show();
-			return task;
-		}
-		if (game == 2) {
-			StringTask task(grade_);
-			task.show();
-			return task;
-		}
-		if (game == 3) {
-			SortTask task(grade_);
-			task.show();
-			return task;
-		}
-	}
-
-public:
-
-	Level(unsigned int level_num) {
-
-		attemts_left_ = 10;
-		score_ = 0;
-		grade_ = level_num;
-
-		cout << endl << endl << "___";
-
-		switch (level_num) {
-		case 1:
-			grade_string_ = "dumb";
-			cout << "First";
-			break;
-		case 2:
-			grade_string_ = "average";
-			cout << "Second";
-			break;
-		case 3:
-			grade_string_ = "PhD";
-			cout << "Third";
-			break;
-		case 4:
-			grade_string_ = "genius";
-			cout << "Fourth";
-			break;
-		}
-
-		cout << " level___" << endl << endl;
-		write_state();
-	}
-
-	bool is_level_passed() {
-		if (score_ == 5 && attemts_left_) return true;
-		return false;
-	}
-
-	void launch_level(Player* player) {
-		while (attemts_left_ && score_ < 5) {
-			Task task = give_task(player->get_game());
-			player->solve_task();
-			if (is_answer_right(player->get_answer(), task)) {
-				score_++;
-				cout << "Good!" << endl;
-				write_state();
-			}
-			else {
-				attemts_left_--;
-				printf_s("You are dummy!\n");
-				write_state();
-			}
-		}
-	}
-
-};
-
-
-class GameManager {
-
-private:
-
-	unsigned int level_;
 	bool is_game_over_;
+	string level_grades_[4]{ "dumb", "average", "PhD", "genius" }; //could make enum with operator++
+	string level_list_[4]{ "First" , "Second", "Third", "Fourth" };
+	unsigned int level_;
+	unsigned int score_;
+	unsigned int attempts_left_;
+	Task* task_;
 
-	void write_greetings(unsigned int game) {
-		switch (game) {
-		case 1:
-			cout << "-----Hello, welcome to the Math Solver!Try to finish this game and reach the TOP!-----" << endl;
-			cout << "Rules are simple\n\tYou need solve given equations and type your answer" << endl;
-			break;
-		case 2:
-			cout << "-----Hello, welcome to the String Solver!Try to finish this game and reach the TOP!-----" << endl;
-			cout << "Rules are simple\n\tYou need to calculate how many times symbol appears in string and type your answer" << endl;
-			break;
-		case 3:
-			cout << "-----Hello, welcome to the Sort Solver!Try to finish this game and reach the TOP!-----" << endl;
-			cout << "Rules are simple\n\tYou need to sort given numbers and type your answer" << endl;
-			break;
-		}
-		cout << "\tWith each right answer you're becoming closer to the TOP!" << endl << endl << endl;
-		cout << "If you ready, type \"/start\" for game start!" << endl;
-	}
+	virtual void write_greetings() = 0;
+	virtual void create_task(unsigned int level, Task** task) = 0; //why can't be Task *
 
 	void write_game_over() {
 		cout << "Sorry but not really sorry, you failed. Game over!!!" << endl;
@@ -353,7 +208,12 @@ private:
 	}
 
 	bool is_game_over() {
-		return is_game_over_;
+		return !(is_level_passed() && level_ == 5);
+	}
+
+	bool is_level_passed() { //need?
+		if (score_ == 5 && attempts_left_) return true;
+		return false;
 	}
 
 	void write_endgame() {
@@ -365,42 +225,170 @@ private:
 		}
 	}
 
-public:
-
-	GameManager() {
-		level_ = 1;
-		is_game_over_ = false;
+	void write_state() {
+		cout << "You are " << level_grades_[level_-1] << " for now.\tYour current score: " << score_ << ".\tTries left : " << attempts_left_ << endl;
 	}
 
-	void game_start() {
-		printf_s("-----Hello, welcome to the Games! Choose your game!-----\n\n");
-		printf_s("type \"/math\" or \"/strings\" or \"/sort\" for the choosen game and get ready!\n");
+
+public:
+
+	Game() {
+		is_game_over_ = false;
+		level_ = 1;
+		score_ = 0;
+		attempts_left_ = 10;
+	}
+
+	void launch_level(Player* player) {
+		do {
+			create_task(level_, &task_);
+			task_->show();
+			player->solve_task();
+			if (task_->get_right_answer() == player->get_answer()) {
+				score_++;
+				cout << "Good!" << endl;
+				write_state();
+			}
+			else {
+				attempts_left_--;
+				cout << "You are dummy!" << endl;
+				write_state();
+			}
+			delete task_;
+		} while (score_ < 5 && attempts_left_);
 	}
 
 	void launch_game(Player* player) {
-		write_greetings(player->get_game());
-		if (player->get_input() != "/start") return;
+		write_greetings();
+		if (player->get_input_string() != "/start") return;
 		do {
-			Level level(level_);
-			level.launch_level(player);
-			is_game_over_ = !level.is_level_passed();
+			attempts_left_ = 10;
+			score_ = 0;
+			cout << endl << endl << "___"<< level_list_[level_-1] << " level___" << endl << endl;
+			write_state();
+			launch_level(player);
 			level_++;
-		} while (!is_game_over_ && level_ < 5);
+		} while (is_level_passed() && level_ < 5);
 		write_endgame();
 	}
+};
 
+
+class GameMath : public Game {
+
+private:
+
+public:
+	GameMath() : Game() {};
+	void write_greetings() override {
+		cout << "-----Hello, welcome to the Math Solver!Try to finish this game and reach the TOP!-----" << endl;
+		cout << "Rules are simple\n\tYou need solve given equations and type your answer" << endl;
+		cout << "\tWith each right answer you're becoming closer to the TOP!" << endl << endl << endl;
+		cout << "If you ready, type \"/start\" for game start!" << endl;
+	}
+
+	void create_task(unsigned int level, Task** task) override {
+		 *task = new MathTask(level);
+	}
+
+};
+
+
+class GameString : public Game {
+
+private:
+
+public:
+	GameString() : Game() {};
+	void write_greetings() override {
+		cout << "-----Hello, welcome to the String Solver!Try to finish this game and reach the TOP!-----" << endl;
+		cout << "Rules are simple\n\tYou need to calculate how many times symbol appears in string and type your answer" << endl;
+		cout << "\tWith each right answer you're becoming closer to the TOP!" << endl << endl << endl;
+		cout << "If you ready, type \"/start\" for game start!" << endl;
+	}
+
+	void create_task(unsigned int level, Task** task) override {
+		*task = new StringTask(level);
+	}
+};
+
+
+class GameSort : public Game {
+
+private:
+
+public:
+	GameSort() : Game() {};
+	void write_greetings() override {
+		cout << "-----Hello, welcome to the Sort Solver!Try to finish this game and reach the TOP!-----" << endl;
+		cout << "Rules are simple\n\tYou need to sort given numbers and type your answer" << endl;
+		cout << "\tWith each right answer you're becoming closer to the TOP!" << endl << endl << endl;
+		cout << "If you ready, type \"/start\" for game start!" << endl;
+	}
+
+	void create_task(unsigned int level, Task** task) override {
+		*task = new SortTask(level);
+	}
+};
+
+unsigned int Player::get_input_int() {
+	unsigned int input;
+	cin >> input;
+	return input;
+}
+
+string Player::get_input_string() {
+	string input;
+	cin >> input;
+	return input;
+}
+unsigned int Player::get_answer() {
+	return answer_;
+}
+
+void Player::solve_task() {
+	answer_ = get_input_int();
+}
+
+void Player::choose_game() {
+	string input = get_input_string();
+	if (input == "/math") {
+		Game* game_;
+		game_ = new GameMath;
+		game_->launch_game(this);
+		delete game_;
+	}
+	else if (input == "/strings") {
+		Game* game_;
+		game_ = new GameString;
+		game_->launch_game(this);
+		delete game_;
+	}
+	else if (input == "/sort") {
+		Game* game_;
+		game_ = new GameSort;
+		game_->launch_game(this);
+		delete game_;
+	}
+}
+
+class GameMenuStarter {
+public:
+	void write_menu_greetings() {
+		cout << "-----Hello, welcome to the Games! Choose your game!-----" << endl;
+		cout << "type \"/math\" or \"/strings\" or \"/sort\" for the choosen game and get ready!" << endl;
+	}
 };
 
 int main() {
 
 	setlocale(LC_ALL, "en");
 
-	GameManager gameMgr;
-	Player player;
-	gameMgr.game_start();
-	player.choose_game();
-	gameMgr.launch_game(&player);
+	GameMenuStarter menu;
+	menu.write_menu_greetings();
 
-	
+	Player player;
+	player.choose_game();
+
 	return 0;
 }
